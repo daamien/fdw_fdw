@@ -3,7 +3,7 @@
 """
 
 from multicorn import ForeignDataWrapper
-import urllib
+import urllib.request as ur
 import re
 
 class FDWFDW(ForeignDataWrapper):
@@ -18,7 +18,8 @@ class FDWFDW(ForeignDataWrapper):
         # first char is a pipe
         # remove useless white space
         # lower characters
-        value = code[1:].strip().lower()
+        txt= code.decode('ascii')
+        value = txt[1:].strip().lower()
 
         # if the code contains a link, remove it and  
         value = re.sub(r'\[(.+?)( +)(.+?)\]', r'\3', value)
@@ -26,16 +27,16 @@ class FDWFDW(ForeignDataWrapper):
         return value
 
     def execute(self, quals, columns):
-
-        response = urllib.urlopen(self.url)
-        wiki_code = response.read().split("\n")
-
-        # Parse the raw mediawiki code
+	#response = urllib.urlopen(self.url
+        response = ur.urlopen(self.url)
+        wiki_code = response.readlines()
+        
+	# Parse the raw mediawiki code
         i=0 
         wrappers=[]
 
         while i < len(wiki_code) :
-            if ( wiki_code[i] == '|-' and wiki_code[i+1][0] == '|') :
+            if ( wiki_code[i] == b'|-\n' and wiki_code[i+1][0] == 124) :
                 # we found a FDW description
                 # let's parse it
                 w={}
